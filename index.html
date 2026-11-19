@@ -1,139 +1,67 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CART3R RADAR SYSTEM</title>
+<title>Mini Radar</title>
 <style>
-*{box-sizing:border-box}
-body{
- margin:0;background:#050507;color:white;
- font-family:Arial,sans-serif;padding:20px;
+body {
+  background: #050b08;
+  color: #00ff66;
+  font-family: Arial;
+  text-align: center;
 }
-h1{text-align:center;color:#ff263f;letter-spacing:3px}
-.panel{
- background:#111116;border:1px solid #6e1826;
- border-radius:16px;padding:18px;margin:15px 0;
+h1 { color: #00ff66; }
+.radar {
+  width: 300px;
+  height: 300px;
+  max-width: 85vw;
+  max-height: 85vw;
+  margin: 30px auto;
+  border: 3px solid #00ff66;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  background: repeating-radial-gradient(
+    circle, transparent 0 35px,
+    #176b35 36px 37px
+  );
 }
-.status{color:#ff334b;text-align:center;font-size:13px}
-.radar{
- width:min(85vw,350px);aspect-ratio:1;
- border:2px solid #ff263f;border-radius:50%;
- margin:20px auto;position:relative;overflow:hidden;
- background:repeating-radial-gradient(
- circle,transparent 0 24%,#49202a 25% 25.5%,
- transparent 26% 49%);
+.radar:before {
+  content: "";
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  left: 50%;
+  top: 0;
+  transform-origin: bottom left;
+  background: linear-gradient(45deg,
+    transparent, #00ff6655);
+  animation: scan 3s linear infinite;
 }
-.radar:before{
- content:"";position:absolute;inset:0;
- background:linear-gradient(90deg,transparent 49.5%,#70202c 50%,transparent 50.5%),
- linear-gradient(0deg,transparent 49.5%,#70202c 50%,transparent 50.5%);
+@keyframes scan {
+  to { transform: rotate(360deg); }
 }
-.sweep{
- position:absolute;inset:0;border-radius:50%;
- background:conic-gradient(from 0deg,transparent 0deg,transparent 285deg,#ff263f66 360deg);
- animation:spin 3s linear infinite;
+.dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #ff3333;
+  border-radius: 50%;
+  box-shadow: 0 0 10px red;
 }
-@keyframes spin{to{transform:rotate(360deg)}}
-.dot{
- position:absolute;width:9px;height:9px;
- border-radius:50%;background:#ff263f;
- box-shadow:0 0 12px #ff263f;
- transform:translate(-50%,-50%);
-}
-button{
- background:#b20d29;color:white;border:1px solid #ff4055;
- padding:13px 18px;border-radius:10px;
- font-weight:bold;margin:5px;cursor:pointer;
-}
-button:active{transform:scale(.96)}
-.controls{text-align:center}
-.stats{display:flex;justify-content:space-around;text-align:center}
-.stats strong{display:block;color:#ff334b;font-size:24px}
-small{color:#999}
+.one { left: 65%; top: 30%; }
+.two { left: 30%; top: 60%; }
+.three { left: 55%; top: 75%; }
 </style>
 </head>
 <body>
-
-<h1>CART3R RADAR</h1>
-<p class="status" id="status">● SYSTEM READY</p>
-
-<div class="panel">
-<h3>RADAR SIMULATION</h3>
-<div class="radar" id="radar">
-<div class="sweep" id="sweep"></div>
+<h1>MINI RADAR</h1>
+<p>RADAR SYSTEM ONLINE</p>
+<div class="radar">
+  <div class="dot one"></div>
+  <div class="dot two"></div>
+  <div class="dot three"></div>
 </div>
-<div class="controls">
-<button onclick="startRadar()">START</button>
-<button onclick="stopRadar()">STOP</button>
-<button onclick="resetRadar()">RESET</button>
-</div>
-</div>
-
-<div class="panel">
-<h3>SYSTEM STATISTICS</h3>
-<div class="stats">
-<div><strong id="count">0</strong><small>Targets</small></div>
-<div><strong id="fps">60</strong><small>Display FPS</small></div>
-<div><strong id="state">OFF</strong><small>Status</small></div>
-</div>
-</div>
-
-<div class="panel">
-<h3>COMMAND CENTER</h3>
-<p>Simulation: <span style="color:#ff334b">LOCAL ONLY</span></p>
-<p>Radar: Active visual demo</p>
-<p>Connection: No game connection</p>
-</div>
-
-<script>
-const radar=document.getElementById("radar");
-const sweep=document.getElementById("sweep");
-let running=false;
-let dots=[];
-
-function createTargets(){
- dots.forEach(d=>d.remove());
- dots=[];
- for(let i=0;i<9;i++){
-  const d=document.createElement("div");
-  d.className="dot";
-  const angle=Math.random()*Math.PI*2;
-  const radius=15+Math.random()*32;
-  d.style.left=(50+Math.cos(angle)*radius)+"%";
-  d.style.top=(50+Math.sin(angle)*radius)+"%";
-  radar.appendChild(d);
-  dots.push(d);
- }
- document.getElementById("count").textContent=dots.length;
-}
-
-function startRadar(){
- if(running)return;
- running=true;
- sweep.style.animationPlayState="running";
- document.getElementById("status").textContent="● RADAR RUNNING";
- document.getElementById("state").textContent="ON";
- createTargets();
-}
-
-function stopRadar(){
- running=false;
- sweep.style.animationPlayState="paused";
- document.getElementById("status").textContent="● RADAR PAUSED";
- document.getElementById("state").textContent="OFF";
-}
-
-function resetRadar(){
- stopRadar();
- dots.forEach(d=>d.remove());
- dots=[];
- document.getElementById("count").textContent="0";
- document.getElementById("status").textContent="● SYSTEM RESET";
-}
-
-sweep.style.animationPlayState="paused";
-</script>
+<p>Rote Punkte: simulierte Signale</p>
 </body>
 </html>
