@@ -3,143 +3,137 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Battle Radar Simulator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CART3R RADAR SYSTEM</title>
 <style>
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: #050505;
-  color: white;
-  font-family: Arial, sans-serif;
-  padding: 22px;
+*{box-sizing:border-box}
+body{
+ margin:0;background:#050507;color:white;
+ font-family:Arial,sans-serif;padding:20px;
 }
-h1 { color: #ff2929; text-align: center; }
-.panel {
-  background: #151515;
-  border: 1px solid #792020;
-  border-radius: 16px;
-  padding: 18px;
-  margin: 16px 0;
+h1{text-align:center;color:#ff263f;letter-spacing:3px}
+.panel{
+ background:#111116;border:1px solid #6e1826;
+ border-radius:16px;padding:18px;margin:15px 0;
 }
-.radar {
-  width: min(82vw, 330px);
-  aspect-ratio: 1;
-  border: 2px solid #ff3030;
-  border-radius: 50%;
-  margin: 20px auto;
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(90deg, transparent 49.5%, #682020 50%, transparent 50.5%),
-    linear-gradient(transparent 49.5%, #682020 50%, transparent 50.5%),
-    repeating-radial-gradient(circle, transparent 0 39px, #642020 40px 41px);
+.status{color:#ff334b;text-align:center;font-size:13px}
+.radar{
+ width:min(85vw,350px);aspect-ratio:1;
+ border:2px solid #ff263f;border-radius:50%;
+ margin:20px auto;position:relative;overflow:hidden;
+ background:repeating-radial-gradient(
+ circle,transparent 0 24%,#49202a 25% 25.5%,
+ transparent 26% 49%);
 }
-.dot {
-  width: 11px;
-  height: 11px;
-  background: #ff3434;
-  border-radius: 50%;
-  position: absolute;
-  box-shadow: 0 0 12px red;
+.radar:before{
+ content:"";position:absolute;inset:0;
+ background:linear-gradient(90deg,transparent 49.5%,#70202c 50%,transparent 50.5%),
+ linear-gradient(0deg,transparent 49.5%,#70202c 50%,transparent 50.5%);
 }
-button {
-  width: 100%;
-  padding: 15px;
-  margin: 7px 0;
-  background: #a20e18;
-  border: 1px solid #ff3434;
-  border-radius: 10px;
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
+.sweep{
+ position:absolute;inset:0;border-radius:50%;
+ background:conic-gradient(from 0deg,transparent 0deg,transparent 285deg,#ff263f66 360deg);
+ animation:spin 3s linear infinite;
 }
-button:active { background: #e22230; }
-.status { color: #ff5555; text-align: center; }
-small { color: #aaa; }
+@keyframes spin{to{transform:rotate(360deg)}}
+.dot{
+ position:absolute;width:9px;height:9px;
+ border-radius:50%;background:#ff263f;
+ box-shadow:0 0 12px #ff263f;
+ transform:translate(-50%,-50%);
+}
+button{
+ background:#b20d29;color:white;border:1px solid #ff4055;
+ padding:13px 18px;border-radius:10px;
+ font-weight:bold;margin:5px;cursor:pointer;
+}
+button:active{transform:scale(.96)}
+.controls{text-align:center}
+.stats{display:flex;justify-content:space-around;text-align:center}
+.stats strong{display:block;color:#ff334b;font-size:24px}
+small{color:#999}
 </style>
 </head>
 <body>
 
-<h1>⚡ BATTLE RADAR</h1>
-<p class="status">● SIMULATION ONLINE</p>
+<h1>CART3R RADAR</h1>
+<p class="status" id="status">● SYSTEM READY</p>
 
 <div class="panel">
-  <h3>RADAR DISPLAY</h3>
-  <div class="radar" id="radar">
-    <div class="dot" style="left:25%;top:30%"></div>
-    <div class="dot" style="left:70%;top:25%"></div>
-    <div class="dot" style="left:55%;top:70%"></div>
-    <div class="dot" style="left:30%;top:75%"></div>
-  </div>
-  <small>Training targets – simulated positions only</small>
+<h3>RADAR SIMULATION</h3>
+<div class="radar" id="radar">
+<div class="sweep" id="sweep"></div>
+</div>
+<div class="controls">
+<button onclick="startRadar()">START</button>
+<button onclick="stopRadar()">STOP</button>
+<button onclick="resetRadar()">RESET</button>
+</div>
 </div>
 
 <div class="panel">
-  <h3>CONTROL CENTER</h3>
-  <button onclick="toggleRadar()">RADAR ON / OFF</button>
-  <button onclick="addTargets()">GENERATE TARGETS</button>
-  <button onclick="clearTargets()">CLEAR RADAR</button>
+<h3>SYSTEM STATISTICS</h3>
+<div class="stats">
+<div><strong id="count">0</strong><small>Targets</small></div>
+<div><strong id="fps">60</strong><small>Display FPS</small></div>
+<div><strong id="state">OFF</strong><small>Status</small></div>
+</div>
 </div>
 
 <div class="panel">
-  <h3>AIM TRAINING</h3>
-  <p>Score: <strong id="score">0</strong></p>
-  <p id="message">Tap Start to begin training.</p>
-  <button onclick="startTraining()">START AIM TRAINING</button>
-  <div id="training"></div>
+<h3>COMMAND CENTER</h3>
+<p>Simulation: <span style="color:#ff334b">LOCAL ONLY</span></p>
+<p>Radar: Active visual demo</p>
+<p>Connection: No game connection</p>
 </div>
-
-<p class="status">BATTLE RADAR SIMULATOR V1.0</p>
-<p style="text-align:center"><small>Independent training simulation. Not connected to PUBG.</small></p>
 
 <script>
-const radar = document.getElementById("radar");
-let radarOn = true;
-let score = 0;
+const radar=document.getElementById("radar");
+const sweep=document.getElementById("sweep");
+let running=false;
+let dots=[];
 
-function toggleRadar() {
-  radarOn = !radarOn;
-  radar.style.opacity = radarOn ? "1" : "0.15";
+function createTargets(){
+ dots.forEach(d=>d.remove());
+ dots=[];
+ for(let i=0;i<9;i++){
+  const d=document.createElement("div");
+  d.className="dot";
+  const angle=Math.random()*Math.PI*2;
+  const radius=15+Math.random()*32;
+  d.style.left=(50+Math.cos(angle)*radius)+"%";
+  d.style.top=(50+Math.sin(angle)*radius)+"%";
+  radar.appendChild(d);
+  dots.push(d);
+ }
+ document.getElementById("count").textContent=dots.length;
 }
 
-function addTargets() {
-  clearTargets();
-  for (let i = 0; i < 8; i++) {
-    const dot = document.createElement("div");
-    dot.className = "dot";
-    dot.style.left = (10 + Math.random() * 80) + "%";
-    dot.style.top = (10 + Math.random() * 80) + "%";
-    radar.appendChild(dot);
-  }
+function startRadar(){
+ if(running)return;
+ running=true;
+ sweep.style.animationPlayState="running";
+ document.getElementById("status").textContent="● RADAR RUNNING";
+ document.getElementById("state").textContent="ON";
+ createTargets();
 }
 
-function clearTargets() {
-  radar.querySelectorAll(".dot").forEach(dot => dot.remove());
+function stopRadar(){
+ running=false;
+ sweep.style.animationPlayState="paused";
+ document.getElementById("status").textContent="● RADAR PAUSED";
+ document.getElementById("state").textContent="OFF";
 }
 
-function startTraining() {
-  score = 0;
-  document.getElementById("score").textContent = score;
-  document.getElementById("message").textContent =
-    "Tap the red targets as quickly as possible!";
-  nextTarget();
+function resetRadar(){
+ stopRadar();
+ dots.forEach(d=>d.remove());
+ dots=[];
+ document.getElementById("count").textContent="0";
+ document.getElementById("status").textContent="● SYSTEM RESET";
 }
 
-function nextTarget() {
-  const area = document.getElementById("training");
-  area.innerHTML = "";
-  const target = document.createElement("button");
-  target.textContent = "🎯 HIT TARGET";
-  target.style.background = "#d41424";
-  target.onclick = () => {
-    score++;
-    document.getElementById("score").textContent = score;
-    nextTarget();
-  };
-  area.appendChild(target);
-}
+sweep.style.animationPlayState="paused";
 </script>
-
 </body>
 </html>
