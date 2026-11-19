@@ -1,67 +1,137 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mini Radar</title>
+<title>MEIN RADAR</title>
 <style>
-body {
-  background: #050b08;
-  color: #00ff66;
-  font-family: Arial;
-  text-align: center;
+*{box-sizing:border-box}
+body{
+ margin:0;background:#030906;color:#00ff88;
+ font-family:Arial,sans-serif;text-align:center;
 }
-h1 { color: #00ff66; }
-.radar {
-  width: 300px;
-  height: 300px;
-  max-width: 85vw;
-  max-height: 85vw;
-  margin: 30px auto;
-  border: 3px solid #00ff66;
-  border-radius: 50%;
-  position: relative;
-  overflow: hidden;
-  background: repeating-radial-gradient(
-    circle, transparent 0 35px,
-    #176b35 36px 37px
-  );
+header{padding:22px;background:#07150e;border-bottom:1px solid #00ff55}
+h1{letter-spacing:5px;text-shadow:0 0 15px #00ff66}
+.status{color:#00ff88;font-size:13px}
+main{padding:18px}
+.radar{
+ position:relative;width:min(88vw,390px);
+ aspect-ratio:1;margin:25px auto;
+ border:2px solid #00ff66;border-radius:50%;
+ overflow:hidden;
+ background:repeating-radial-gradient(
+ circle,transparent 0 24%,#176c3d 24.5% 25%,transparent 25.5% 49%,#176c3d 49.5% 50%);
+ box-shadow:0 0 25px #00ff5540,inset 0 0 30px #00ff3320;
 }
-.radar:before {
-  content: "";
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  left: 50%;
-  top: 0;
-  transform-origin: bottom left;
-  background: linear-gradient(45deg,
-    transparent, #00ff6655);
-  animation: scan 3s linear infinite;
+.radar:before,.radar:after{
+ content:"";position:absolute;background:#00ff6655;
 }
-@keyframes scan {
-  to { transform: rotate(360deg); }
+.radar:before{width:1px;height:100%;left:50%}
+.radar:after{height:1px;width:100%;top:50%}
+.sweep{
+ position:absolute;width:50%;height:50%;
+ left:50%;top:0;transform-origin:bottom left;
+ background:conic-gradient(from 0deg at 0% 100%,transparent 0deg,#00ff0040 65deg,transparent 70deg);
+ animation:scan 4s linear infinite;
 }
-.dot {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #ff3333;
-  border-radius: 50%;
-  box-shadow: 0 0 10px red;
+@keyframes scan{to{transform:rotate(360deg)}}
+.target{
+ position:absolute;width:9px;height:9px;border-radius:50%;
+ background:#ff3c55;box-shadow:0 0 12px #ff003c;
+ transform:translate(-50%,-50%);
 }
-.one { left: 65%; top: 30%; }
-.two { left: 30%; top: 60%; }
-.three { left: 55%; top: 75%; }
+.center{
+ position:absolute;left:50%;top:50%;width:8px;height:8px;
+ border-radius:50%;background:white;transform:translate(-50%,-50%);
+}
+.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+button{
+ background:#092416;color:#00ff88;border:1px solid #00ff66;
+ padding:13px 22px;border-radius:9px;font-weight:bold;
+}
+button:active{background:#00ff66;color:#001a0b}
+.stats{
+ display:flex;justify-content:center;gap:12px;flex-wrap:wrap;
+ margin:20px auto;max-width:450px
+}
+.stat{background:#09170f;border:1px solid #155b36;
+ border-radius:10px;padding:15px;min-width:105px}
+.stat strong{display:block;font-size:22px}
+footer{color:#598b70;font-size:11px;padding:20px}
 </style>
 </head>
 <body>
-<h1>MINI RADAR</h1>
-<p>RADAR SYSTEM ONLINE</p>
-<div class="radar">
-  <div class="dot one"></div>
-  <div class="dot two"></div>
-  <div class="dot three"></div>
+<header>
+<h1>MEIN RADAR</h1>
+<div class="status" id="status">● SYSTEM ONLINE</div>
+</header>
+<main>
+<h3>RADAR SIMULATION</h3>
+<div class="radar" id="radar">
+<div class="sweep" id="sweep"></div>
+<div class="center"></div>
 </div>
-<p>Rote Punkte: simulierte Signale</p>
+<div class="controls">
+<button onclick="start()">START</button>
+<button onclick="stop()">STOP</button>
+<button onclick="reset()">RESET</button>
+</div>
+<div class="stats">
+<div class="stat">SIGNALS<strong id="count">8</strong></div>
+<div class="stat">STATUS<strong id="state">ON</strong></div>
+<div class="stat">MODE<strong>SIM</strong></div>
+</div>
+<p>Alle Signale sind simuliert.</p>
+</main>
+<footer>MEIN RADAR • VERSION 2.0</footer>
+<script>
+const radar=document.getElementById("radar");
+const sweep=document.getElementById("sweep");
+let targets=[];
+let running=true;
+function createTargets(){
+ targets.forEach(t=>t.el.remove());
+ targets=[];
+ for(let i=0;i<8;i++){
+  const el=document.createElement("div");
+  el.className="target";
+  radar.appendChild(el);
+  targets.push({
+   el,
+   angle:Math.random()*Math.PI*2,
+   radius:0.15+Math.random()*0.7,
+   speed:(Math.random()-0.5)*0.003
+  });
+ }
+ update();
+}
+function update(){
+ targets.forEach(t=>{
+  t.angle+=t.speed;
+  const x=50+Math.cos(t.angle)*t.radius*43;
+  const y=50+Math.sin(t.angle)*t.radius*43;
+  t.el.style.left=x+"%";
+  t.el.style.top=y+"%";
+ });
+}
+let timer=setInterval(()=>{if(running)update()},40);
+function start(){
+ running=true;
+ sweep.style.animationPlayState="running";
+ document.getElementById("status").textContent="● SYSTEM ONLINE";
+ document.getElementById("state").textContent="ON";
+}
+function stop(){
+ running=false;
+ sweep.style.animationPlayState="paused";
+ document.getElementById("status").textContent="● SYSTEM PAUSED";
+ document.getElementById("state").textContent="OFF";
+}
+function reset(){
+ createTargets();
+ start();
+}
+createTargets();
+</script>
 </body>
 </html>
